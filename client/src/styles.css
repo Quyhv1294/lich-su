@@ -190,6 +190,9 @@ p.msg--error { background: #2e1513; border: 1px solid #6b2a24; color: #f3b0a8; p
 }
 @media (max-width: 480px) {
   .brand span { display: none; }
+  .mode { display: none; }
+  .topbar__inner { gap: 8px; }
+  .tab { padding: 6px 6px; }
   .msg { max-width: 100%; }
   .msg__avatar { width: 30px; height: 30px; }
 }
