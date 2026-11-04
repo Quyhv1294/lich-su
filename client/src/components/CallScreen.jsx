@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
 import { pickVoice, splitSentences } from '../hooks/useSpeech.js';
+import { sharedAudio } from '../audio.js';
 
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 const Recognition = typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
@@ -86,11 +87,12 @@ export default function CallScreen({ character, onClose }) {
       setPhase('speaking');
       setLine(text);
       if (!url) { browserSpeak(text, finish); return; }
-      const el = new Audio(url);
+      const el = sharedAudio();
       audioRef.current = el;
       const done = () => { URL.revokeObjectURL(url); finish(); };
       el.onended = done;
       el.onerror = done;
+      el.src = url;
       el.play().catch(() => { URL.revokeObjectURL(url); browserSpeak(text, finish); });
     };
     return {

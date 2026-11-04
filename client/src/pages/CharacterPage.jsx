@@ -8,6 +8,7 @@ import ProfilePanel from '../components/ProfilePanel.jsx';
 import Disclaimer from '../components/Disclaimer.jsx';
 import CallScreen from '../components/CallScreen.jsx';
 import { shortName } from '../components/CharacterCard.jsx';
+import { unlockAudio } from '../audio.js';
 
 export default function CharacterPage() {
   const { slug } = useParams();
@@ -45,7 +46,7 @@ export default function CharacterPage() {
         <header className="character__head">
           <Link to="/" className="back">← Tất cả nhân vật</Link>
           <h1>{character.name} <small>{character.title}</small></h1>
-          <button className="btn btn--primary call-open" onClick={() => { speech.stop(); setCalling(true); }}>📞 Gọi {shortName(character)}</button>
+          <button className="btn btn--primary call-open" onClick={() => { unlockAudio(); speech.stop(); setCalling(true); }}>📞 Gọi {shortName(character)}</button>
         </header>
         <ChatWindow key={`${character.id}-${chatKey}`} character={character} speech={speech} />
         <Disclaimer compact />
@@ -63,7 +64,7 @@ export default function CharacterPage() {
         </div>
 
         <div className="panel__actions">
-          <button className="btn btn--primary" onClick={() => { speech.stop(); setCalling(true); }}>📞 Gọi {shortName(character)}</button>
+          <button className="btn btn--primary" onClick={() => { unlockAudio(); speech.stop(); setCalling(true); }}>📞 Gọi {shortName(character)}</button>
           <button className={`btn ${view === 'story' ? 'btn--on' : ''}`} onClick={() => toggle('story')}>🎧 Nghe kể chuyện</button>
           <button className={`btn ${view === 'profile' ? 'btn--on' : ''}`} onClick={() => toggle('profile')}>📜 Hồ sơ nhân vật</button>
           <button

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api.js';
+import { sharedAudio, unlockAudio } from '../audio.js';
 
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
 const Recognition = typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
@@ -65,6 +66,7 @@ export function useSpeech() {
 
   const speak = useCallback((id, sentences, voice = {}) => {
     if (!sentences.length) return;
+    unlockAudio();
     synth?.cancel();
     audioRef.current?.pause();
     const mine = ++token.current;
@@ -99,7 +101,7 @@ export function useSpeech() {
         return;
       }
       if (!url) { browserRun(0); return; }
-      const el = new Audio(url);
+      const el = sharedAudio();
       audioRef.current = el;
       // Tô sáng câu đang đọc theo tỉ lệ độ dài chữ so với thời lượng file
       const total = sentences.reduce((n, s) => n + s.length, 0);
@@ -113,6 +115,7 @@ export function useSpeech() {
       const done = () => { URL.revokeObjectURL(url); finish(); };
       el.onended = done;
       el.onerror = done;
+      el.src = url;
       setIndex(0);
       el.play().catch(() => { URL.revokeObjectURL(url); browserRun(0); });
     })();
