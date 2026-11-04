@@ -44,8 +44,8 @@ export function splitSentences(text) {
 }
 
 /**
- * Đọc thành tiếng: mỗi câu được server tạo thành file âm thanh (một giọng chung cho mọi nhân vật),
- * câu sau được tạo trong lúc câu trước đang phát. Nếu không tạo được file thì đọc bằng giọng trình duyệt.
+ * Đọc thành tiếng: cả câu trả lời được server tạo thành MỘT file âm thanh (một giọng chung cho mọi nhân vật).
+ * Nếu không tạo được file thì đọc bằng giọng trình duyệt.
  */
 export function useSpeech() {
   const [speakingId, setSpeakingId] = useState(null);
@@ -70,48 +70,52 @@ export function useSpeech() {
     const mine = ++token.current;
     setSpeakingId(id);
 
-    const urls = [];
-    const fetchAt = (i) => {
-      if (i < sentences.length && !urls[i]) urls[i] = api.tts(sentences[i]).catch(() => null);
-      return urls[i];
+    const finish = () => {
+      if (mine !== token.current) return;
+      setSpeakingId(null);
+      setIndex(-1);
     };
-    const browserSpeak = (text, done) => {
-      if (!synth) { done(); return; }
-      const u = new SpeechSynthesisUtterance(text);
+    // Giọng trình duyệt (chỉ khi không tạo được file âm thanh): đọc lần lượt từng câu
+    const browserRun = (i) => {
+      if (mine !== token.current) return;
+      if (i >= sentences.length || !synth) { finish(); return; }
+      setIndex(i);
+      const u = new SpeechSynthesisUtterance(sentences[i]);
       u.lang = 'vi-VN';
       const v = pickVoice();
       if (v) u.voice = v;
       u.rate = voice.rate ?? 1;
       u.pitch = voice.pitch ?? 1;
-      u.onend = done;
-      u.onerror = done;
+      u.onend = () => browserRun(i + 1);
+      u.onerror = () => browserRun(i + 1);
       synth.speak(u);
     };
-    const run = async (i) => {
-      if (mine !== token.current) return;
-      if (i >= sentences.length) {
-        setSpeakingId(null);
-        setIndex(-1);
-        return;
-      }
-      fetchAt(i);
-      fetchAt(i + 1);
-      const url = await urls[i];
+
+    // Cả câu trả lời được tạo thành một file duy nhất để giọng đọc đồng nhất từ đầu đến cuối
+    (async () => {
+      const url = await api.tts(sentences.join(' ')).catch(() => null);
       if (mine !== token.current) {
         if (url) URL.revokeObjectURL(url);
         return;
       }
-      setIndex(i);
-      const done = () => run(i + 1);
-      if (!url) { browserSpeak(sentences[i], done); return; }
+      if (!url) { browserRun(0); return; }
       const el = new Audio(url);
       audioRef.current = el;
-      const ended = () => { URL.revokeObjectURL(url); done(); };
-      el.onended = ended;
-      el.onerror = ended;
-      el.play().catch(() => { URL.revokeObjectURL(url); browserSpeak(sentences[i], done); });
-    };
-    run(0);
+      // Tô sáng câu đang đọc theo tỉ lệ độ dài chữ so với thời lượng file
+      const total = sentences.reduce((n, s) => n + s.length, 0);
+      let acc = 0;
+      const bounds = sentences.map((s) => (acc += s.length) / total);
+      el.ontimeupdate = () => {
+        if (!el.duration || mine !== token.current) return;
+        const i = bounds.findIndex((b) => el.currentTime / el.duration <= b);
+        setIndex(i < 0 ? sentences.length - 1 : i);
+      };
+      const done = () => { URL.revokeObjectURL(url); finish(); };
+      el.onended = done;
+      el.onerror = done;
+      setIndex(0);
+      el.play().catch(() => { URL.revokeObjectURL(url); browserRun(0); });
+    })();
   }, []);
 
   useEffect(() => stop, [stop]);

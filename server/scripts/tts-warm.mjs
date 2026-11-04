@@ -1,4 +1,4 @@
-// Tạo sẵn file âm thanh cho lời chào của các tướng: npm run tts:warm -w server
+// Tạo sẵn file âm thanh (một file cho cả lời chào) cho lời chào của các tướng: npm run tts:warm -w server
 // File nằm trong server/.cache/tts, khi gọi điện server dùng lại ngay nên không phải chờ.
 // Chạy lại được nhiều lần: câu nào đã có thì bỏ qua. Đổi TTS_VOICE thì chạy lại để tạo giọng mới.
 import 'dotenv/config';
@@ -21,8 +21,9 @@ let ok = 0;
 let failed = 0;
 for (const file of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
   const c = JSON.parse(readFileSync(path.join(dir, file), 'utf8'));
-  for (const sentence of split(c.greeting || '')) {
-    const text = checkOutput(sentence).text.slice(0, 400);
+  // Giống trình duyệt: cắt câu rồi nối lại, cả lời chào là một file
+  for (const sentence of [split(c.greeting || '').join(' ')].filter(Boolean)) {
+    const text = checkOutput(sentence).text.slice(0, 900);
     let done = false;
     for (let attempt = 1; attempt <= 3 && !done; attempt++) {
       try {
@@ -37,5 +38,5 @@ for (const file of readdirSync(dir).filter((f) => f.endsWith('.json'))) {
     console.log(`${done ? 'OK ' : 'LỖI'} ${c.id || file}: ${text.slice(0, 50)}…`);
   }
 }
-console.log(`Xong: ${ok} câu thành công, ${failed} câu lỗi.`);
+console.log(`Xong: ${ok} lời chào thành công, ${failed} lỗi.`);
 process.exit(failed ? 1 : 0);

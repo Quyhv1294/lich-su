@@ -9,7 +9,7 @@ router.post('/', async (req, res) => {
   const raw = req.body?.text;
   if (typeof raw !== 'string' || !raw.trim()) return res.status(400).json({ code: 'INVALID_INPUT', message: 'Thiếu nội dung cần đọc' });
   if (!ttsAvailable()) return res.status(503).json({ code: 'TTS_OFF', message: 'Chưa cấu hình giọng đọc' });
-  const text = checkOutput(raw).text.slice(0, 400);
+  const text = checkOutput(raw).text.slice(0, 900);
   try {
     const { buffer, mime } = await synthesize(text);
     res.setHeader('Content-Type', mime);

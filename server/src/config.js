@@ -24,7 +24,7 @@ export const config = {
     maxHistoryTurns: 6, // chiến lược chi phí 11.4
     maxOutputChars: 900,
     llmTimeoutMs: 20000, // FR-CHAT-12
-    ttsTimeoutMs: 25000,
+    ttsTimeoutMs: 45000,
   },
 };
 

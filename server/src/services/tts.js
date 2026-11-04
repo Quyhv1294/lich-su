@@ -31,6 +31,33 @@ function pcmToWav(pcm, rate = 24000) {
   return Buffer.concat([h, pcm]);
 }
 
+/** Chỉnh âm lượng về một mức chung (RMS) để mọi câu trả lời to nhỏ như nhau; không để méo tiếng. */
+function normalizePcm(pcm, target = 5000) {
+  const n = pcm.length >> 1;
+  if (!n) return pcm;
+  let sum = 0;
+  let peak = 1;
+  for (let i = 0; i < n; i++) {
+    const v = pcm.readInt16LE(i * 2);
+    sum += v * v;
+    peak = Math.max(peak, Math.abs(v));
+  }
+  const rms = Math.sqrt(sum / n) || 1;
+  const gain = Math.min(target / rms, 32000 / peak, 3);
+  if (Math.abs(gain - 1) < 0.03) return pcm;
+  const out = Buffer.alloc(pcm.length);
+  for (let i = 0; i < n; i++) out.writeInt16LE(Math.round(pcm.readInt16LE(i * 2) * gain), i * 2);
+  return out;
+}
+
+/** Chỉnh âm lượng phần dữ liệu của file WAV 16-bit, giữ nguyên phần đầu file. */
+function normalizeWav(wav) {
+  const at = wav.indexOf('data', 12, 'latin1');
+  if (at < 0 || wav.readUInt16LE(34) !== 16) return wav;
+  const start = at + 8;
+  return Buffer.concat([wav.subarray(0, start), normalizePcm(wav.subarray(start))]);
+}
+
 export async function geminiSpeech(text, signal, voice = config.tts.voice) {
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${config.tts.model}:generateContent`, {
     method: 'POST',
@@ -50,9 +77,9 @@ export async function geminiSpeech(text, signal, voice = config.tts.voice) {
   if (!part) throw new Error('Gemini TTS không trả về âm thanh');
   const data = Buffer.from(part.inlineData.data, 'base64');
   const mime = part.inlineData.mimeType || '';
-  if (/wav/i.test(mime)) return { buffer: data, mime: 'audio/wav' };
+  if (/wav/i.test(mime)) return { buffer: normalizeWav(data), mime: 'audio/wav' };
   const rate = Number(/rate=(\d+)/i.exec(mime)?.[1]) || 24000;
-  return { buffer: pcmToWav(data, rate), mime: 'audio/wav' };
+  return { buffer: pcmToWav(normalizePcm(data), rate), mime: 'audio/wav' };
 }
 
 const ESC = { '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' };

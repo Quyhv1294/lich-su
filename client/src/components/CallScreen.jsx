@@ -65,49 +65,38 @@ export default function CallScreen({ character, onClose }) {
     synth.speak(u);
   }, [character.voice]);
 
-  // Bộ đọc theo dòng chảy: mỗi câu được tạo thành file âm thanh ngay khi đến (câu sau tạo trong lúc câu trước đang phát)
+  // Gom các câu đến từ LLM, hết câu trả lời thì tạo MỘT file âm thanh cho cả câu trả lời rồi phát
+  // (tạo từng câu riêng thì giọng mỗi câu một khác)
   const speakStream = useCallback(() => {
     synth?.cancel();
     audioRef.current?.pause();
     const mine = ++speakToken.current;
-    const queue = [];
-    let playing = false;
-    let ended = false;
+    const parts = [];
     let finish;
     const promise = new Promise((r) => { finish = r; });
-    const next = () => {
-      if (mine !== speakToken.current || !activeRef.current) { finish(); return; }
-      const item = queue.shift();
-      if (!item) {
-        playing = false;
-        if (ended) finish();
+    const play = async () => {
+      const text = parts.join(' ').trim();
+      if (!text) { finish(); return; }
+      const url = await api.tts(text).catch(() => null);
+      if (mine !== speakToken.current || !activeRef.current) {
+        if (url) URL.revokeObjectURL(url);
+        finish();
         return;
       }
-      playing = true;
-      item.audio.then((url) => {
-        if (mine !== speakToken.current || !activeRef.current) {
-          if (url) URL.revokeObjectURL(url);
-          finish();
-          return;
-        }
-        setPhase('speaking');
-        setLine(item.text);
-        if (!url) { browserSpeak(item.text, next); return; }
-        const el = new Audio(url);
-        audioRef.current = el;
-        const done = () => { URL.revokeObjectURL(url); next(); };
-        el.onended = done;
-        el.onerror = done;
-        el.play().catch(() => { URL.revokeObjectURL(url); browserSpeak(item.text, next); });
-      });
+      setPhase('speaking');
+      setLine(text);
+      if (!url) { browserSpeak(text, finish); return; }
+      const el = new Audio(url);
+      audioRef.current = el;
+      const done = () => { URL.revokeObjectURL(url); finish(); };
+      el.onended = done;
+      el.onerror = done;
+      el.play().catch(() => { URL.revokeObjectURL(url); browserSpeak(text, finish); });
     };
     return {
       promise,
-      push(s) {
-        queue.push({ text: s, audio: api.tts(s).catch(() => null) });
-        if (!playing) next();
-      },
-      end() { ended = true; if (!playing && !queue.length) finish(); },
+      push(s) { parts.push(s); },
+      end() { play(); },
     };
   }, [browserSpeak, setPhase]);
 
