@@ -176,10 +176,10 @@ p.msg--error { background: #2e1513; border: 1px solid #6b2a24; color: #f3b0a8; p
   .character { grid-template-columns: minmax(0, 1fr); }
   .panel { position: static; max-height: none; }
   .chat { height: 70vh; }
-  .stage { grid-template-columns: minmax(0, 1fr); }
-  .stage__frame { max-width: 420px; }
 }
 @media (max-width: 700px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .stage__frame { max-width: 420px; }
   /* Dòng thời gian chuyển thành danh sách dọc */
   .line { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 0 0 0 28px; margin-top: 40px; }
   .line::before { left: 11px; right: auto; top: 8px; bottom: 8px; width: 2px; height: auto; }
@@ -241,3 +241,14 @@ p.msg--error { background: #2e1513; border: 1px solid #6b2a24; color: #f3b0a8; p
 .voice__none { font-size: .8rem; color: var(--muted); margin: 0 0 14px; }
 .voice--compact { width: 100%; margin: 6px 0 0; text-align: left; }
 .voice--compact select { background: rgba(0, 0, 0, .45); }
+
+/* ---------- Màn hình cảm ứng (điện thoại, iPad) ---------- */
+@media (pointer: coarse) {
+  /* Vùng chạm tối thiểu ~40px cho ngón tay */
+  .tab, .install__btn, .tool, .chip--btn, .btn, .icon-btn { min-height: 40px; }
+  .tab { display: inline-flex; align-items: center; }
+  .tool { padding: 6px 14px; }
+  .line__item button { min-height: 48px; }
+}
+.footer { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+.call__inner { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
