@@ -14,6 +14,8 @@ import ttsRouter from './routes/tts.js';
 export function createApp() {
   const app = express();
   app.disable('x-powered-by');
+  // Chạy sau proxy của hosting (Render...) thì đặt TRUST_PROXY=1 để giới hạn tần suất tính theo IP thật của người dùng
+  if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
   app.use(cors({ origin: config.corsOrigin }));
   app.use(express.json({ limit: '20kb' }));
 

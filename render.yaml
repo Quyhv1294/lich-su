@@ -1,0 +1,27 @@
+# Render Blueprint: một dịch vụ duy nhất vừa chạy server vừa phục vụ giao diện (client/dist),
+# nên chỉ có MỘT đường dẫn https để gửi cho người khác.
+services:
+  - type: web
+    name: lich-su
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: GEMINI_API_KEY
+        sync: false # dán khoá trên trang Render, không ghi vào mã
+      - key: GEMINI_MODEL
+        value: gemini-flash-latest
+      - key: TTS_PROVIDER
+        value: gemini
+      - key: TTS_MODEL
+        value: gemini-3.8-flash-lite-tts
+      - key: TTS_VOICE
+        value: Algieba
+      - key: RATE_MAX
+        value: "60"
