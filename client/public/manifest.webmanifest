@@ -1,0 +1,17 @@
+{
+  "name": "Lịch Sử Việt Nam: Thần Tướng Kể Chuyện",
+  "short_name": "Thần Tướng",
+  "description": "Trò chuyện, gọi điện và nghe kể chuyện cùng các vị tướng lịch sử Việt Nam.",
+  "lang": "vi",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0e1726",
+  "theme_color": "#0a111e",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
