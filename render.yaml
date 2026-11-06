@@ -22,7 +22,7 @@ services:
       - key: TTS_MODEL
         value: gemini-3.1-flash-tts-preview
       - key: TTS_STYLE
-        value: Say in a deep, firm, heroic voice of an ancient Vietnamese general rallying his troops, with strong emphasis and a steady commanding pace
+        value: Say with a dignified, resolute and inspiring tone, like a great general proudly telling of a victory
       - key: TTS_VOICE
         value: Algieba
       - key: RATE_MAX
