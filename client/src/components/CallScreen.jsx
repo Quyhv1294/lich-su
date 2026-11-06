@@ -35,6 +35,8 @@ export default function CallScreen({ character, onClose }) {
   const history = useRef([]);
   const abortRef = useRef(null);
   const audioRef = useRef(null);
+  const silenceRef = useRef(null); // hẹn giờ nhận biết người nói đã dừng
+  const sendHeardRef = useRef(() => {});
 
   const setPhase = useCallback((p) => {
     phaseRef.current = p;
@@ -42,6 +44,7 @@ export default function CallScreen({ character, onClose }) {
   }, []);
 
   const stopRec = useCallback(() => {
+    clearTimeout(silenceRef.current);
     const r = recRef.current;
     recRef.current = null;
     if (r) {
@@ -139,7 +142,8 @@ export default function CallScreen({ character, onClose }) {
     if (!activeRef.current) return;
     history.current.push({ role: 'assistant', text: said.join(' ') });
     await player.promise;
-    if (activeRef.current && phaseRef.current === 'speaking') listenRef.current();
+    // Đọc xong (hoặc câu trả lời rỗng/lỗi) thì quay lại nghe, trừ khi người dùng đã chuyển sang trạng thái khác
+    if (activeRef.current && (phaseRef.current === 'speaking' || phaseRef.current === 'thinking')) listenRef.current();
   }, [character.id, speakStream, stopRec, setPhase]);
 
   const listenRef = useRef(() => {});
@@ -151,16 +155,26 @@ export default function CallScreen({ character, onClose }) {
     rec.lang = 'vi-VN';
     rec.interimResults = true;
     rec.maxAlternatives = 1;
-    let gotFinal = false;
+    // Trình duyệt (nhất là iPhone) thường không báo "đã nói xong": chữ cứ hiện dần mà kết quả cuối không đến.
+    // Nên tự coi là nói xong khi im lặng đủ lâu, hoặc khi micro tự dừng mà đã có chữ.
+    const SILENCE_MS = 1400;
+    let latest = '';
+    let submitted = false;
+    const submit = () => {
+      const t = latest.trim();
+      if (submitted || !t || recRef.current !== rec) return;
+      submitted = true;
+      clearTimeout(silenceRef.current);
+      ask(t);
+    };
+    sendHeardRef.current = submit;
     rec.onresult = (e) => {
-      let interim = '';
-      let final = '';
-      for (let i = e.resultIndex; i < e.results.length; i += 1) {
-        const t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += t; else interim += t;
-      }
-      setHeard(final || interim);
-      if (final.trim()) { gotFinal = true; ask(final); }
+      const results = Array.from(e.results);
+      latest = results.map((r) => r[0].transcript).join(' ');
+      setHeard(latest);
+      clearTimeout(silenceRef.current);
+      if (results[results.length - 1].isFinal) submit();
+      else silenceRef.current = setTimeout(submit, SILENCE_MS);
     };
     rec.onerror = (e) => {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
@@ -170,8 +184,10 @@ export default function CallScreen({ character, onClose }) {
       }
     };
     rec.onend = () => {
+      clearTimeout(silenceRef.current);
+      if (latest.trim() && !submitted) { submit(); return; }
       if (recRef.current === rec) recRef.current = null;
-      if (!gotFinal && phaseRef.current === 'listening' && activeRef.current) setTimeout(() => listenRef.current(), 250);
+      if (!submitted && phaseRef.current === 'listening' && activeRef.current) setTimeout(() => listenRef.current(), 250);
     };
     recRef.current = rec;
     try { rec.start(); } catch { /* đang chạy */ }
@@ -254,6 +270,10 @@ export default function CallScreen({ character, onClose }) {
           {phase === 'speaking' && line && <p className="call__line">{line}</p>}
           {phase !== 'speaking' && heard && <p className="call__heard">Em: “{heard}”</p>}
         </div>
+
+        {phase === 'listening' && heard && (
+          <button type="button" className="btn btn--primary call__send" onClick={() => sendHeardRef.current()}>Gửi câu hỏi</button>
+        )}
 
         {error && <p className="msg--error call__error">{error}</p>}
 

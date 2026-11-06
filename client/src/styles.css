@@ -200,6 +200,7 @@ p.msg--error { background: #2e1513; border: 1px solid #6b2a24; color: #f3b0a8; p
 .call__text { min-height: 5.5em; width: 100%; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
 .call__line { margin: 0; font-family: var(--serif); font-size: 1.1rem; line-height: 1.6; }
 .call__heard { margin: 0; color: var(--muted); font-style: italic; }
+.call__send { margin: 4px 0 2px; }
 .call__error { width: 100%; text-align: left; font-size: .9rem; margin: 0; }
 .call__suggest { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 6px 0; }
 .call__typed { display: flex; gap: 8px; width: 100%; margin-top: 6px; }
