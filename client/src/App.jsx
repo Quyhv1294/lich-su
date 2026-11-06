@@ -52,11 +52,6 @@ export default function App() {
         <Route path="*" element={<main className="wrap"><p>Không tìm thấy trang. <Link to="/">Về trang chủ</Link></p></main>} />
       </Routes>
 
-      <footer className="footer">
-        <div className="wrap">
-          Bản demo NCKH · Nội dung chưa được chuyên gia lịch sử thẩm định · Không nhập thông tin cá nhân.
-        </div>
-      </footer>
     </>
   );
 }

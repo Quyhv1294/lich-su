@@ -158,7 +158,6 @@ p.msg--error { background: #2e1513; border: 1px solid #6b2a24; color: #f3b0a8; p
 .quotes { margin: 0; padding-left: 18px; font-family: var(--serif); font-style: italic; font-size: .92rem; }
 .note { font-size: .78rem; color: var(--muted); margin: 0; border-left: 3px solid var(--gold); padding-left: 10px; }
 
-.footer { border-top: 1px solid var(--line); padding: 16px 0; font-size: .8rem; color: var(--muted); background: #0a111e; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
@@ -233,5 +232,4 @@ p.msg--error { background: #2e1513; border: 1px solid #6b2a24; color: #f3b0a8; p
   .tab { display: inline-flex; align-items: center; }
   .tool { padding: 6px 14px; }
 }
-.footer { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
 .call__inner { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
