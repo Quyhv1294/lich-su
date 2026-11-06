@@ -11,6 +11,8 @@ export const config = {
     provider: process.env.TTS_PROVIDER || 'gemini', // 'gemini' (dùng chung khoá) hoặc 'azure'
     model: process.env.TTS_MODEL || 'gemini-3.8-flash-lite-tts',
     voice: process.env.TTS_VOICE || 'Orus',
+    // Lời chỉ dẫn phong cách đọc (chỉ các model gemini-3.1-flash-tts-preview, gemini-2.5-*-tts làm theo mà không đọc to; model lite sẽ đọc to nó)
+    style: process.env.TTS_STYLE || '',
     azureKey: process.env.AZURE_SPEECH_KEY || '',
     azureRegion: process.env.AZURE_SPEECH_REGION || 'southeastasia',
     azureVoice: process.env.AZURE_SPEECH_VOICE || 'vi-VN-NamMinhNeural',

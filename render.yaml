@@ -20,7 +20,9 @@ services:
       - key: TTS_PROVIDER
         value: gemini
       - key: TTS_MODEL
-        value: gemini-3.8-flash-lite-tts
+        value: gemini-3.1-flash-tts-preview
+      - key: TTS_STYLE
+        value: Say in a deep, firm, heroic voice of an ancient Vietnamese general rallying his troops, with strong emphasis and a steady commanding pace
       - key: TTS_VOICE
         value: Algieba
       - key: RATE_MAX

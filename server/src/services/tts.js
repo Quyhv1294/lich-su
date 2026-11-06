@@ -62,9 +62,9 @@ export async function geminiSpeech(text, signal, voice = config.tts.voice) {
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${config.tts.model}:generateContent`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.geminiKey },
-    // Không thêm lời chỉ dẫn kiểu "đọc bằng giọng…" vào văn bản: mô hình sẽ đọc to luôn cả lời chỉ dẫn.
+    // Lời chỉ dẫn phong cách (TTS_STYLE) chỉ nên dùng với model hỗ trợ; model lite sẽ đọc to luôn cả lời chỉ dẫn.
     body: JSON.stringify({
-      contents: [{ parts: [{ text }] }],
+      contents: [{ parts: [{ text: config.tts.style ? `${config.tts.style}: ${text}` : text }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
@@ -106,7 +106,7 @@ async function azureSpeech(text, signal) {
 /** @returns {Promise<{buffer: Buffer, mime: string}>} */
 export async function synthesize(text) {
   const p = config.tts;
-  const id = createHash('sha256').update(`${p.provider}|${p.model}|${p.voice}|${p.azureVoice}|${text}`).digest('hex').slice(0, 40);
+  const id = createHash('sha256').update(`${p.provider}|${p.model}|${p.voice}|${p.azureVoice}|${p.style}|${text}`).digest('hex').slice(0, 40);
   const isMp3 = p.provider === 'azure';
   const file = path.join(cacheDir, `${id}.${isMp3 ? 'mp3' : 'wav'}`);
   const mime = isMp3 ? 'audio/mpeg' : 'audio/wav';
